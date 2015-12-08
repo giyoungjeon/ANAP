@@ -17,14 +17,14 @@ function [H] = global_homography(f1, f2)
 % Statistical Artificial Intelligence Lab at UNIST
 % v1.0 Nov., 31st, 2015
 
-    O = [0 0 0]';
+    O = [0 0 0];
     x_ = f1(1,:); y_ = f1(2,:); x = f2(1,:); y = f2(2,:);
     p = [x; y; ones(size(x))];
-    A = zeros(3*size(x,2), 9);
+    A = [];
     for idx=1:size(x,2)
-        A(2*idx-1,:) = [p(:,idx)' O' x(idx)*p(:,idx)'];
-        A(2*idx,:) = [O' -p(:,idx)' y_(idx)*p(:,idx)'];
+        A = [A; p(:,idx)'   O           x(idx)*p(:,idx)';
+                O           p(:,idx)'  -y_(idx)*p(:,idx)'];
     end
-    [~, ~, v] = svd(A);
-    H = reshape(v(:,end),[3 3]);
+    [u, s, v] = svd(A,0);
+    H = reshape(v(:,end),3,3)';
 end
