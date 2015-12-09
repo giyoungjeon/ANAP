@@ -18,13 +18,17 @@ function [H] = global_homography(f1, f2)
 % v1.0 Nov., 31st, 2015
 
     O = [0 0 0];
-    x_ = f1(1,:); y_ = f1(2,:); x = f2(1,:); y = f2(2,:);
+    x = f1(1,:); 
+    y = f1(2,:); 
+    x_ = f2(1,:);     
+    y_ = f2(2,:);
+    
     p = [x; y; ones(size(x))];
     A = [];
     for idx=1:size(x,2)
-        A = [A; p(:,idx)'   O           x(idx)*p(:,idx)';
-                O           p(:,idx)'  -y_(idx)*p(:,idx)'];
+        A = [A; p(:,idx)'   O           -x_(idx)*p(:,idx)';
+                O           -p(:,idx)'  y_(idx)*p(:,idx)'];
     end
     [u, s, v] = svd(A,0);
-    H = reshape(v(:,end),3,3)';
+    H = reshape(v(:,end),[3,3])';
 end

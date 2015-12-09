@@ -8,26 +8,15 @@ end
 region = [1 rows 1 cols];
 max_size = max([rows cols]);
 
-if ndims(img)==3
-    img = img/255;
-    [r] = transformImage(img(:,:,1), H, region, max_size);
-    [g] = transformImage(img(:,:,2), H, region, max_size);
-    [b] = transformImage(img(:,:,3), H, region, max_size);
-    
-    new_img = repmat(uint8(0),[size(r),3]);
-    new_img(:,:,1) = uint8(round(r*255));
-    new_img(:,:,2) = uint8(round(g*255));
-    new_img(:,:,3) = uint8(round(b*255));
-%     new_img = repmat(uint8(0),size(img));
-%     for rgb=1:3
-%         new_img_rgb = transformImage(img(:,:,rgb), H, region, max_size);
-%         disp(size(new_img_rgb));
-%         new_img(:,:,rgb) = uint8(round(new_img_rgb*255));
-%     end
-    
-else                % Assume the image is greyscale
-    new_img = transformImage(img, H, region, max_size);
-end
+img = img/255;
+[r] = transformImage(img(:,:,1), H, region, max_size);
+[g] = transformImage(img(:,:,2), H, region, max_size);
+[b] = transformImage(img(:,:,3), H, region, max_size);
+
+new_img = repmat(uint8(0),[size(r),3]);
+new_img(:,:,1) = uint8(round(r*255));
+new_img(:,:,2) = uint8(round(g*255));
+new_img(:,:,3) = uint8(round(b*255));
 end
 
 %------------------------------------------------------------
@@ -41,26 +30,7 @@ B = bounds(H,region);
 nrows = B(2) - B(1);
 ncols = B(4) - B(3);
 
-% Determine any rescaling needed
-s = sze/max(nrows,ncols);
-
-S = [s 0 0        % Scaling matrix
-     0 s 0
-     0 0 1];
-
-H = S\H;
 Hinv = inv(H);
-
-% Recalculate the bounds of the new (scaled) image to be generated
-B = bounds(H,region);
-nrows = B(2) - B(1);
-ncols = B(4) - B(3);
-
-% Construct a transformation matrix that relates transformed image
-% coordinates to the reference coordinates for use in a function such as
-% DIGIPLANE.  This transformation is just an inverse of a scaling and
-% origin shift. 
-% newT=inv(S - [0 0 B(3); 0 0 B(1); 0 0 0]);
 
 % Set things up for the image transformation.
 newim = zeros(nrows,ncols);

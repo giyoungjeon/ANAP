@@ -1,27 +1,40 @@
 run('../vlfeat-0.9.20/toolbox/vl_setup')
 
-Ia = imread('../Stitch_Dataset/974-1.jpg');
-Ib = imread('../Stitch_Dataset/975-1.jpg');
+img1 = imresize(imread('../Stitch_Dataset/023/023.jpg'),1);
+img2 = imresize(imread('../Stitch_Dataset/023/024.jpg'),1);
 
 %% Feature detection using SIFT and matching
 
-[fa, da] = vl_sift(single(rgb2gray(Ia)),'PeakThresh', 0,'edgethresh',500) ;
-[fb, db] = vl_sift(single(rgb2gray(Ib)),'PeakThresh', 0,'edgethresh',500) ;
-[matches, scores] = vl_ubcmatch(da, db) ;
-f1 = fa(:,matches(1,:));
-f2 = fb(:,matches(1,:));
+[f1, d1] = vl_sift(single(rgb2gray(img1)),'PeakThresh', 0,'edgethresh',500) ;
+[f2, d2] = vl_sift(single(rgb2gray(img2)),'PeakThresh', 0,'edgethresh',500) ;
+[match_idxs, scores] = vl_ubcmatch(d1, d2) ;
+f1 = f1(:,match_idxs(1,:));
+f2 = f2(:,match_idxs(2,:));
+[~, score_idx] = sort(scores);
 
 %% Remove outlier using RANSAC
-M     = 500;  % Number of hypotheses for RANSAC.
-thr   = 0.1;  % RANSAC threshold.
+M     = 100;  % Number of iteration for RANSAC.
 
-rng(0);
-[ ~,res,~,~ ] = multigsSampling(100,[f1;f2],M,10);
-con = sum(res<=thr);
-[ ~, maxinx ] = max(con);
-inliers = find(res(:,maxinx)<=thr);
+inliers = ransac(f1,f2,M);
 %%  Global homography
+figure;subplot(1,2,1);imshow(img1);hold on;
+scatter(f1(1,:),f1(2,:),'r');scatter(f1(1,inliers),f1(2,inliers),'g');
+subplot(1,2,2);imshow(img2);hold on;
+scatter(f1(1,:),f1(2,:),'r');scatter(f1(1,inliers),f1(2,inliers),'g');
 
 H = global_homography(f1(:,inliers), f2(:,inliers));
 
-%% Local homography
+%% Image Stitching
+panorama = image_stitch(img1,img2,f1(1:2,inliers),f2(1:2,inliers),H);
+figure; imshow(panorama);
+
+p1 = f1(:,inliers);
+p2 = f2(:,inliers);
+tmp_p2 = H\[p2(1:2,:);ones(1,size(p2,2))];
+p2(1,:) = tmp_p2(1,:)./tmp_p2(3,:);
+p2(2,:) = tmp_p2(2,:)./tmp_p2(3,:);
+hold on;
+scatter(p1(1,:),p1(2,:),'go');
+scatter(p2(1,:),p2(2,:),'ro');
+
+%% Local Homography
