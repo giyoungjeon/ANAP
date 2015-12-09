@@ -19,7 +19,7 @@ function [H_j] = local_homography(f1,f2)
 % v1.0 Dec., 6th, 2015
 
     O = [0 0 0]';
-    x_ = f1(1,:); y_ = f1(2,:); x = f2(1,:); y = f2(2,:);
+    x = f1(1,:); y = f1(2,:); x_ = f2(1,:); y_ = f2(2,:);
     p = [x; y; ones(size(x))];
     H = cells(1,size(p,2);
     for jdx=1:size(p,2)
@@ -30,7 +30,7 @@ function [H_j] = local_homography(f1,f2)
         W_j = diag(W_j);
         A = zeros(2*size(x,2), 9);
         for idx=1:size(x,2)
-            A(2*idx-1,:) = [p(:,idx)' O' x(idx)*p(:,idx)'];
+            A(2*idx-1,:) = [p(:,idx)' O' x_(idx)*p(:,idx)'];
             A(2*idx,:) = [O' -p(:,idx)' y_(idx)*p(:,idx)'];
         end
         [~, ~, v] = svd(W_j*A);
